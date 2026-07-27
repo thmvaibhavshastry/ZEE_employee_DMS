@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if is_employee() %}
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card gradient-purple">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">My Attendance Today</span>
+                        <h2 class="kpi-value">{{ my_attendance.status|capitalize if my_attendance else 'N/A' }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-calendar-check-fill"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card gradient-purple-light">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Pending Leaves</span>
+                        <h2 class="kpi-value">{{ my_pending_leaves }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card gradient-pink">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Approved Leaves</span>
+                        <h2 class="kpi-value">{{ my_approved_leaves }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card" style="background:linear-gradient(135deg,#0dcaf0,#0aa2c0);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Last Payroll</span>
+                        <h2 class="kpi-value">₹{{ "{:,.0f}".format(my_payroll.net_salary) if my_payroll else '0' }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-person-badge me-2 text-purple"></i>My Profile</span></div>
+            <div class="card-body">
+                {% if my_employee %}
+                <table class="table table-borderless mb-0">
+                    <tr><th style="width:160px;">Employee Code</th><td>{{ my_employee.employee_code }}</td></tr>
+                    <tr><th>Name</th><td>{{ my_employee.first_name }} {{ my_employee.last_name }}</td></tr>
+                    <tr><th>Email</th><td>{{ my_employee.email }}</td></tr>
+                    <tr><th>Phone</th><td>{{ my_employee.phone or '-' }}</td></tr>
+                    <tr><th>Department</th><td>{{ my_employee.department or '-' }}</td></tr>
+                    <tr><th>Designation</th><td>{{ my_employee.designation or '-' }}</td></tr>
+                    <tr><th>Date of Joining</th><td>{{ my_employee.date_of_joining.strftime('%d-%m-%Y') }}</td></tr>
+                    <tr><th>Salary</th><td>₹{{ "{:,.2f}".format(my_employee.salary) }}</td></tr>
+                </table>
+                {% else %}
+                <p class="text-muted">No profile data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-info-circle me-2 text-purple"></i>Quick Actions</span></div>
+            <div class="card-body d-flex flex-column gap-3">
+                <a href="{{ url_for('leave.apply_leave') }}" class="btn btn-outline-purple text-start py-3">
+                    <i class="bi bi-plus-circle me-2"></i> Apply for Leave
+                </a>
+                <a href="{{ url_for('leave.list_leaves') }}" class="btn btn-outline-purple text-start py-3">
+                    <i class="bi bi-calendar-x me-2"></i> View My Leaves
+                </a>
+                <a href="{{ url_for('attendance.list_attendance') }}" class="btn btn-outline-purple text-start py-3">
+                    <i class="bi bi-calendar-check me-2"></i> View My Attendance
+                </a>
+                <a href="{{ url_for('payroll.list_payroll') }}" class="btn btn-outline-purple text-start py-3">
+                    <i class="bi bi-receipt me-2"></i> View My Payslips
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif is_manager() %}
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-4 col-md-6">
+        <div class="card kpi-card gradient-purple">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Team Size</span>
+                        <h2 class="kpi-value">{{ total_employees }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card kpi-card gradient-purple-light">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Present Today</span>
+                        <h2 class="kpi-value">{{ present_today }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card kpi-card gradient-pink">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Pending Leave Requests</span>
+                        <h2 class="kpi-value">{{ pending_leaves }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-calendar-check me-2 text-purple"></i>Team Attendance</span></div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-4"><div class="att-box bg-success-soft text-center p-2 rounded"><h5 class="mb-0 text-success">{{ present_today }}</h5><small class="text-muted">Present</small></div></div>
+                    <div class="col-4"><div class="att-box bg-warning-soft text-center p-2 rounded"><h5 class="mb-0 text-warning">{{ late_today }}</h5><small class="text-muted">Late</small></div></div>
+                    <div class="col-4"><div class="att-box bg-danger-soft text-center p-2 rounded"><h5 class="mb-0 text-danger">{{ absent_today }}</h5><small class="text-muted">Absent</small></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-people me-2 text-purple"></i>Team Members</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Name</th><th>Department</th><th>Designation</th><th>Code</th></tr></thead>
+                        <tbody>
+                            {% for m in team_members %}
+                            <tr>
+                                <td><small class="fw-semibold">{{ m.first_name }} {{ m.last_name }}</small></td>
+                                <td>{{ m.department or '-' }}</td>
+                                <td>{{ m.designation or '-' }}</td>
+                                <td><span class="badge bg-secondary">{{ m.employee_code }}</span></td>
+                            </tr>
+                            {% endfor %}
+                            {% if not team_members %}
+                            <tr><td colspan="4" class="text-center text-muted">No team members</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-calendar-x me-2 text-purple"></i>Employees on Leave</span></div>
+            <div class="card-body">
+                {% if employees_on_leave %}
+                {% for l in employees_on_leave %}
+                <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded bg-light">
+                    <div class="avatar-xs bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px;font-weight:600;flex-shrink:0;">{{ l.employee.first_name[0]|upper }}{{ l.employee.last_name[0]|upper }}</div>
+                    <div class="flex-grow-1"><small class="d-block lh-1 fw-semibold">{{ l.employee.first_name }} {{ l.employee.last_name }}</small><small class="text-muted" style="font-size:10px;">{{ l.leave_type|capitalize }}</small></div>
+                    <span class="badge bg-{{ 'danger' if l.leave_type == 'sick' else 'success' }}" style="font-size:9px;">{{ (l.end_date - l.start_date).days + 1 }}d</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted mb-0">No team members on leave</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-lightning me-2 text-purple"></i>Quick Actions</span></div>
+            <div class="card-body d-flex flex-column gap-3">
+                <a href="{{ url_for('employees.list_employees') }}" class="btn btn-outline-purple text-start py-3"><i class="bi bi-people me-2"></i> Manage Team</a>
+                <a href="{{ url_for('attendance.mark_attendance') }}" class="btn btn-outline-purple text-start py-3"><i class="bi bi-calendar-check me-2"></i> Mark Attendance</a>
+                <a href="{{ url_for('leave.list_leaves') }}" class="btn btn-outline-purple text-start py-3"><i class="bi bi-box-arrow-right me-2"></i> Approve / Reject Leave</a>
+                <a href="{{ url_for('attendance.attendance_report') }}" class="btn btn-outline-purple text-start py-3"><i class="bi bi-file-earmark-bar-graph me-2"></i> Attendance Report</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-4 col-md-6">
+        <div class="card kpi-card gradient-purple">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Total Employees</span>
+                        <h2 class="kpi-value">{{ total_employees }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+                </div>
+                <span class="kpi-trend up"><i class="bi bi-arrow-up"></i> 12% this month</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card kpi-card gradient-purple-light">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">New Joined</span>
+                        <h2 class="kpi-value">{{ new_joined }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-person-plus-fill"></i></div>
+                </div>
+                <span class="kpi-trend up"><i class="bi bi-arrow-up"></i> 5 this year</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card kpi-card gradient-pink">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="kpi-label">Resigned</span>
+                        <h2 class="kpi-value">{{ resigned_count }}</h2>
+                    </div>
+                    <div class="kpi-icon"><i class="bi bi-person-dash-fill"></i></div>
+                </div>
+                <span class="kpi-trend down"><i class="bi bi-arrow-down"></i> 0 this year</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-bar-chart-fill me-2 text-purple"></i>Job Applied</span>
+                <span class="text-muted small">Monthly applications</span>
+            </div>
+            <div class="card-body"><canvas id="jobAppliedChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-xl-3">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-folder me-2 text-purple"></i>Project Overview</span></div>
+            <div class="card-body d-flex flex-column">
+                <div class="text-center mb-3">
+                    <h2 class="fw-bold text-purple mb-0">{{ projects.total }}</h2>
+                    <small class="text-muted">Total Projects</small>
+                </div>
+                <div class="project-stats flex-grow-1">
+                    <div class="d-flex justify-content-between mb-2"><span><i class="bi bi-check-circle-fill text-success me-1"></i> Signed</span><span class="fw-semibold">{{ projects.signed }}</span></div>
+                    <div class="progress mb-3" style="height:6px;"><div class="progress-bar bg-success" style="width:{{ (projects.signed / projects.total * 100)|int }}%"></div></div>
+                    <div class="d-flex justify-content-between mb-2"><span><i class="bi bi-clock-fill text-warning me-1"></i> Manager Review</span><span class="fw-semibold">{{ projects.manager_review }}</span></div>
+                    <div class="progress mb-3" style="height:6px;"><div class="progress-bar bg-warning" style="width:{{ (projects.manager_review / projects.total * 100)|int }}%"></div></div>
+                    <div class="d-flex justify-content-between mb-2"><span><i class="bi bi-search-heart-fill text-info me-1"></i> Client Review</span><span class="fw-semibold">{{ projects.client_review }}</span></div>
+                    <div class="progress mb-3" style="height:6px;"><div class="progress-bar bg-info" style="width:{{ (projects.client_review / projects.total * 100)|int }}%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-calendar-check me-2 text-purple"></i>Attendance & Events</span></div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-4"><div class="att-box bg-success-soft text-center p-2 rounded"><h5 class="mb-0 text-success">{{ present_today }}</h5><small class="text-muted">Present</small></div></div>
+                    <div class="col-4"><div class="att-box bg-warning-soft text-center p-2 rounded"><h5 class="mb-0 text-warning">{{ late_today }}</h5><small class="text-muted">Late</small></div></div>
+                    <div class="col-4"><div class="att-box bg-danger-soft text-center p-2 rounded"><h5 class="mb-0 text-danger">{{ absent_today }}</h5><small class="text-muted">Absent</small></div></div>
+                </div>
+                {% if today_events %}
+                <div class="mb-3">
+                    <small class="fw-semibold text-muted d-block mb-2"><i class="bi bi-stars me-1"></i>Today Events</small>
+                    {% for ev in today_events %}
+                    <div class="event-item d-flex align-items-center gap-2 mb-2 p-2 rounded bg-light">
+                        <i class="bi bi-{{ 'cake2-fill' if ev.type == 'birthday' else 'calendar-event-fill' }} text-purple"></i>
+                        <small>{{ ev.title }}{% if ev.time %} - {{ ev.time }}{% endif %}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div>
+                    <small class="fw-semibold text-muted d-block mb-2"><i class="bi bi-person-fill me-1"></i>Employees on Leave</small>
+                    {% if employees_on_leave %}
+                    <div class="leave-list" style="max-height:100px;overflow-y:auto;">
+                        {% for l in employees_on_leave %}
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="avatar-xs bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px;font-weight:600;flex-shrink:0;">{{ l.employee.first_name[0]|upper }}{{ l.employee.last_name[0]|upper }}</div>
+                            <div class="flex-grow-1"><small class="d-block lh-1 fw-semibold">{{ l.employee.first_name }} {{ l.employee.last_name }}</small><small class="text-muted" style="font-size:10px;">{{ l.leave_type|capitalize }} leave</small></div>
+                            <span class="badge bg-{{ 'danger' if l.leave_type == 'sick' else 'success' }}" style="font-size:9px;">{{ (l.end_date - l.start_date).days + 1 }}d</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <small class="text-muted">No employees on leave today</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-trophy me-2 text-purple"></i>Performance Listed</span>
+                <button class="btn btn-outline-purple btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="perfTable">
+                        <thead class="table-light"><tr><th>Name</th><th>Age</th><th>Department</th><th>Projects</th><th>Salary</th></tr></thead>
+                        <tbody>
+                            {% for p in performance_table %}
+                            <tr>
+                                <td><div class="d-flex align-items-center gap-2"><div class="avatar-xs bg-purple-soft text-purple rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px;font-weight:600;">{{ p.name.split()[0][0] }}{{ p.name.split()[1][0] }}</div><small class="fw-semibold">{{ p.name }}</small></div></td>
+                                <td>{{ p.age }}</td><td>{{ p.dept }}</td><td>{{ p.projects }}</td><td>₹{{ "{:,.0f}".format(p.salary) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-pie-chart-fill me-2 text-purple"></i>Employee Type</span></div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <canvas id="empTypeChart" height="200"></canvas>
+                <div class="d-flex gap-3 mt-3 flex-wrap justify-content-center">
+                    <div><span class="dot bg-purple"></span> Full-time <strong>{{ employee_types.full_time }}</strong></div>
+                    <div><span class="dot bg-info"></span> Part-time <strong>{{ employee_types.part_time }}</strong></div>
+                    <div><span class="dot bg-warning"></span> Internship <strong>{{ employee_types.internship }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-purple"></i>Performance Trend</span></div>
+            <div class="card-body"><canvas id="perfTrendChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if not is_employee() and not is_manager() %}
+<script>
+const jobData = {{ job_applied_data | tojson }};
+const jobMonths = jobData.map(d => d.month);
+const jobCounts = jobData.map(d => d.count);
+const jobActive = jobData.map(d => d.active);
+
+new Chart(document.getElementById('jobAppliedChart'), {
+    type: 'bar',
+    data: {
+        labels: jobMonths,
+        datasets: [{
+            data: jobCounts,
+            backgroundColor: jobActive.map(a => a ? '#7c3aed' : '#e9d5ff'),
+            borderColor: jobActive.map(a => a ? '#7c3aed' : '#e9d5ff'),
+            borderWidth: 1, borderRadius: 4, borderSkipped: false,
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+});
+
+const empTypes = {{ employee_types | tojson }};
+new Chart(document.getElementById('empTypeChart'), {
+    type: 'doughnut',
+    data: { labels: ['Full-time', 'Part-time', 'Internship'], datasets: [{ data: [empTypes.full_time, empTypes.part_time, empTypes.internship], backgroundColor: ['#7c3aed', '#0dcaf0', '#ffc107'], borderWidth: 0 }] },
+    options: { responsive: true, cutout: '70%', plugins: { legend: { display: false } } }
+});
+
+const trend = {{ performance_trend | tojson }};
+new Chart(document.getElementById('perfTrendChart'), {
+    type: 'line',
+    data: { labels: trend.months, datasets: [
+        { label: '' + trend.year1, data: trend.year1_data, borderColor: '#c4b5fd', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, pointBackgroundColor: '#c4b5fd' },
+        { label: '' + trend.year2, data: trend.year2_data, borderColor: '#7c3aed', backgroundColor: 'transparent', tension: 0.4, pointRadius: 4, pointBackgroundColor: '#7c3aed', borderWidth: 3 }
+    ]},
+    options: { responsive: true, plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+});
+
+$(document).ready(function() { $('#perfTable').DataTable({ paging: false, searching: false, info: false, order: [[4, 'desc']] }); });
+</script>
+{% endif %}
+{% endblock %}

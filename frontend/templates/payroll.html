@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-cash-stack"></i> Payroll Management</h3>
+        <a href="{{ url_for('payroll.generate_payroll') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Generate Payroll
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="payrollTable">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Month/Year</th>
+                            <th>Basic</th>
+                            <th>Allowances</th>
+                            <th>Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in payrolls %}
+                        <tr>
+                            <td>{{ p.employee.first_name }} {{ p.employee.last_name }}</td>
+                            <td>{{ p.month }}/{{ p.year }}</td>
+                            <td>₹ {{ "{:,.2f}".format(p.basic_salary) }}</td>
+                            <td>₹ {{ "{:,.2f}".format(p.allowances + p.hra + p.da) }}</td>
+                            <td>₹ {{ "{:,.2f}".format(p.deductions + p.tax + p.pf) }}</td>
+                            <td><strong>₹ {{ "{:,.2f}".format(p.net_salary) }}</strong></td>
+                            <td>
+                                {% if p.status == 'generated' %}
+                                <span class="badge bg-warning">Generated</span>
+                                {% elif p.status == 'processed' %}
+                                <span class="badge bg-success">Processed</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ p.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('payroll.view_payroll', id=p.id) }}" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if p.status == 'generated' %}
+                                <a href="{{ url_for('payroll.process_payroll', id=p.id) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-check2"></i>
+                                </a>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('payroll.delete_payroll', id=p.id) }}" style="display:inline;" onsubmit="return confirm('Delete this payroll record?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#payrollTable').DataTable({ order: [[1, 'desc']] });
+});
+</script>
+{% endblock %}

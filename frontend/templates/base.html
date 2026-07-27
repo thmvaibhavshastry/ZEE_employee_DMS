@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMS - Employee Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+
+    <div class="layout-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <a href="{{ url_for('main.dashboard') }}">
+                    <i class="bi bi-brightness-high-fill me-2"></i>Zee
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-section">Main</li>
+                    <li class="active">
+                        <a href="{{ url_for('main.dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+                    </li>
+
+                    {% if is_admin_or_above() %}
+                    <li>
+                        <a href="{{ url_for('attendance.attendance_report') }}"><i class="bi bi-file-earmark-bar-graph"></i> Report</a>
+                    </li>
+                    {% endif %}
+
+                    <li>
+                        <a href="{{ url_for('holidays.list_holidays') }}"><i class="bi bi-calendar3"></i> Calendar</a>
+                    </li>
+
+                    {% if is_manager_or_above() %}
+                    <li class="nav-section mt-3">Management</li>
+                    <li>
+                        <a href="{{ url_for('employees.list_employees') }}"><i class="bi bi-people"></i> Employees</a>
+                    </li>
+                    {% endif %}
+
+                    {% if can_manage_managers %}
+                    <li>
+                        <a href="{{ url_for('managers.list_managers') }}"><i class="bi bi-person-badge"></i> Managers</a>
+                    </li>
+                    {% endif %}
+
+                    {% if can_manage_payroll %}
+                    <li>
+                        <a href="{{ url_for('payroll.list_payroll') }}"><i class="bi bi-cash-stack"></i> Payroll</a>
+                    </li>
+                    {% endif %}
+
+                    {% if is_manager_or_above() %}
+                    <li>
+                        <a href="{{ url_for('attendance.list_attendance') }}"><i class="bi bi-calendar-check"></i> Attendance</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('leave.list_leaves') }}"><i class="bi bi-box-arrow-right"></i> Leave</a>
+                    </li>
+                    {% endif %}
+
+                    {% if is_employee() %}
+                    <li class="nav-section mt-3">My Portal</li>
+                    <li>
+                        <a href="{{ url_for('attendance.list_attendance') }}"><i class="bi bi-calendar-check"></i> My Attendance</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('leave.list_leaves') }}"><i class="bi bi-box-arrow-right"></i> My Leave</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('payroll.list_payroll') }}"><i class="bi bi-cash-stack"></i> My Payroll</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#"><i class="bi bi-gear"></i> Settings</a>
+                <a href="#"><i class="bi bi-question-circle"></i> Support</a>
+                <a href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
+
+                <div class="sidebar-promo">
+                    <i class="bi bi-hourglass-split"></i>
+                    <div>
+                        <strong>Assessment</strong>
+                        <small>3 days remaining</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div class="d-flex align-items-center">
+                    <button class="sidebar-toggle btn btn-link text-dark me-3" id="sidebarToggle">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <div>
+                        <h5 class="mb-0">Hello {{ current_user.username|capitalize }}!</h5>
+                        <small class="text-muted">Welcome back to your dashboard</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search..." class="form-control form-control-sm">
+                    </div>
+                    <div class="position-relative">
+                        <i class="bi bi-bell fs-5 text-muted"></i>
+                        <span class="notification-dot"></span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-sm bg-purple text-white rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;font-weight:600;font-size:14px;">
+                            {{ current_user.username[0]|upper }}
+                        </div>
+                        <div>
+                            <small class="fw-semibold d-block lh-1">{{ current_user.username|capitalize }}</small>
+                            <small class="text-muted" style="font-size:11px;">{{ current_user.role.replace('admin','Admin').replace('super','Super ').replace('manager','Manager').replace('employee','Employee') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-3">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% else %}
+
+    <div class="auth-layout">
+        <div class="auth-bg"></div>
+        {% block auth_inner %}{% endblock %}
+    </div>
+
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

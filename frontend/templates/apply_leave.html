@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-plus-circle"></i> Apply Leave</h3>
+        <a href="{{ url_for('leave.list_leaves') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Employee *</label>
+                                <select name="employee_id" class="form-select" required>
+                                    <option value="">Select Employee</option>
+                                    {% for e in employees %}
+                                    <option value="{{ e.id }}">{{ e.first_name }} {{ e.last_name }} ({{ e.employee_code }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Leave Type *</label>
+                                <select name="leave_type" class="form-select" required>
+                                    <option value="">Select Type</option>
+                                    <option value="sick">Sick Leave</option>
+                                    <option value="earned">Earned Leave</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Start Date *</label>
+                                <input type="date" name="start_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">End Date *</label>
+                                <input type="date" name="end_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Reason *</label>
+                                <textarea name="reason" class="form-control" rows="4" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Submit Leave</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white"><h5 class="mb-0">Leave Balance</h5></div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h6>Sick Leave</h6>
+                        <div class="progress mb-2" style="height:25px;">
+                            <div class="progress-bar bg-danger" style="width:0%" id="sickBar">0/12</div>
+                        </div>
+                        <h6>Earned Leave</h6>
+                        <div class="progress" style="height:25px;">
+                            <div class="progress-bar bg-success" style="width:0%" id="earnedBar">0/18</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$('select[name="employee_id"]').change(function() {
+    const id = $(this).val();
+    if (id) {
+        $.getJSON('/leave/api/employee-leaves/' + id, function(data) {
+            const sickPct = (data.sick_leaves_taken / data.total_sick_entitled) * 100;
+            const earnedPct = (data.earned_leaves_taken / data.total_earned_entitled) * 100;
+            $('#sickBar').css('width', sickPct + '%').text(`${data.sick_remaining}/${data.total_sick_entitled}`);
+            $('#earnedBar').css('width', earnedPct + '%').text(`${data.earned_remaining}/${data.total_earned_entitled}`);
+        });
+    }
+});
+</script>
+{% endblock %}

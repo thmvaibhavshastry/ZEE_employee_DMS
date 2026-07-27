@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-pencil"></i> Update Attendance</h3>
+        <a href="{{ url_for('attendance.list_attendance') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Employee</label>
+                        <input type="text" class="form-control" value="{{ record.employee.first_name }} {{ record.employee.last_name }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date</label>
+                        <input type="text" class="form-control" value="{{ record.date.strftime('%d-%m-%Y') }}" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="present" {% if record.status == 'present' %}selected{% endif %}>Present</option>
+                            <option value="absent" {% if record.status == 'absent' %}selected{% endif %}>Absent</option>
+                            <option value="half-day" {% if record.status == 'half-day' %}selected{% endif %}>Half Day</option>
+                            <option value="late" {% if record.status == 'late' %}selected{% endif %}>Late</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Check In</label>
+                        <input type="time" name="check_in" class="form-control" value="{{ record.check_in or '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Check Out</label>
+                        <input type="time" name="check_out" class="form-control" value="{{ record.check_out or '' }}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Remarks</label>
+                        <input type="text" name="remarks" class="form-control" value="{{ record.remarks or '' }}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Update</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

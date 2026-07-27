@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-pencil"></i> Edit Manager</h3>
+        <a href="{{ url_for('managers.list_managers') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" name="first_name" class="form-control" value="{{ manager.first_name }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" name="last_name" class="form-control" value="{{ manager.last_name }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-control" value="{{ manager.email }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Phone</label>
+                        <input type="text" name="phone" class="form-control" value="{{ manager.phone or '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Department</label>
+                        <select name="department" class="form-select">
+                            <option value="">Select</option>
+                            {% for d in ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'] %}
+                            <option value="{{ d }}" {% if manager.department == d %}selected{% endif %}>{{ d }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Designation</label>
+                        <input type="text" name="designation" class="form-control" value="{{ manager.designation or '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date of Joining</label>
+                        <input type="date" name="date_of_joining" class="form-control" value="{{ manager.date_of_joining.strftime('%Y-%m-%d') if manager.date_of_joining else '' }}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Update Manager</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-plus-circle"></i> Mark Attendance</h3>
+        <a href="{{ url_for('attendance.list_attendance') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control w-25" value="{{ today.strftime('%Y-%m-%d') }}" required>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Status</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in employees %}
+                            <tr>
+                                <td>
+                                    {{ e.first_name }} {{ e.last_name }}
+                                    <input type="hidden" name="employee_id[]" value="{{ e.id }}">
+                                </td>
+                                <td>
+                                    <select name="status[]" class="form-select">
+                                        <option value="present">Present</option>
+                                        <option value="absent">Absent</option>
+                                        <option value="half-day">Half Day</option>
+                                        <option value="late">Late</option>
+                                    </select>
+                                </td>
+                                <td><input type="time" name="check_in[]" class="form-control"></td>
+                                <td><input type="time" name="check_out[]" class="form-control"></td>
+                                <td><input type="text" name="remarks[]" class="form-control" placeholder="Optional"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Attendance</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

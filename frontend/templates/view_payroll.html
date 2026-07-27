@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-receipt"></i> Payroll Slip</h3>
+        <a href="{{ url_for('payroll.list_payroll') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Pay Slip - {{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr><th>Employee</th><td>{{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</td></tr>
+                        <tr><th>Code</th><td>{{ payroll.employee.employee_code }}</td></tr>
+                        <tr><th>Department</th><td>{{ payroll.employee.department or '-' }}</td></tr>
+                        <tr><th>Period</th><td>{{ payroll.month }}/{{ payroll.year }}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr><th>Payment Date</th><td>{{ payroll.payment_date.strftime('%d-%m-%Y') }}</td></tr>
+                        <tr><th>Status</th><td><span class="badge bg-{{ 'success' if payroll.status == 'processed' else 'warning' }}">{{ payroll.status }}</span></td></tr>
+                    </table>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Earnings</h6>
+                    <table class="table table-sm">
+                        <tr><td>Basic Salary</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.basic_salary) }}</td></tr>
+                        <tr><td>HRA</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.hra) }}</td></tr>
+                        <tr><td>Dearness Allowance</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.da) }}</td></tr>
+                        <tr><td>Other Allowances</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.allowances) }}</td></tr>
+                        <tr class="table-success"><th>Total Earnings</th><th class="text-end">₹ {{ "{:,.2f}".format(payroll.basic_salary + payroll.hra + payroll.da + payroll.allowances) }}</th></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Deductions</h6>
+                    <table class="table table-sm">
+                        <tr><td>Tax</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.tax) }}</td></tr>
+                        <tr><td>PF</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.pf) }}</td></tr>
+                        <tr><td>Other Deductions</td><td class="text-end">₹ {{ "{:,.2f}".format(payroll.deductions) }}</td></tr>
+                        <tr class="table-danger"><th>Total Deductions</th><th class="text-end">₹ {{ "{:,.2f}".format(payroll.tax + payroll.pf + payroll.deductions) }}</th></tr>
+                    </table>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-12 text-end">
+                    <h4>Net Salary: ₹ {{ "{:,.2f}".format(payroll.net_salary) }}</h4>
+                </div>
+            </div>
+            {% if payroll.remarks %}
+            <div class="mt-3">
+                <strong>Remarks:</strong> {{ payroll.remarks }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

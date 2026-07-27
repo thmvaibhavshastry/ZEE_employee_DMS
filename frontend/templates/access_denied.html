@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block auth_inner %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-lg border-0" style="border-radius:16px;">
+                <div class="card-body p-5">
+                    <div style="width:80px;height:80px;background:linear-gradient(135deg,#dc3545,#b02a37);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+                        <i class="bi bi-shield-lock-fill fs-1 text-white"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-3">Access Denied</h2>
+                    <p class="text-muted mb-4">You do not have permission to perform this action.<br>Please contact your administrator if you believe this is an error.</p>
+                    <a href="{{ url_for('auth.login') }}" class="btn px-4 py-2 text-white fw-semibold" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:10px;">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

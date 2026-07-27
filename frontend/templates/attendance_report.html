@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-file-text"></i> Attendance Report</h3>
+        <a href="{{ url_for('attendance.list_attendance') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Employee</label>
+                    <select id="filter_employee" class="form-select">
+                        <option value="">All Employees</option>
+                        {% for e in employees %}
+                        <option value="{{ e.id }}">{{ e.first_name }} {{ e.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Month</label>
+                    <select id="filter_month" class="form-select">
+                        {% for m in range(1, 13) %}
+                        <option value="{{ m }}" {% if m == 7 %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Year</label>
+                    <input type="number" id="filter_year" class="form-control" value="2026">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button id="btnFilter" class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover" id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let reportTable;
+
+function loadReport() {
+    const emp = $('#filter_employee').val();
+    const month = $('#filter_month').val();
+    const year = $('#filter_year').val();
+
+    $.getJSON(`/attendance/api/report?employee_id=${emp}&month=${month}&year=${year}`, function(data) {
+        if (reportTable) reportTable.destroy();
+        const tbody = $('#reportBody');
+        tbody.empty();
+        data.forEach(function(r) {
+            const badge = r.status === 'present' ? 'success' : r.status === 'absent' ? 'danger' : r.status === 'half-day' ? 'warning' : 'info';
+            tbody.append(`<tr>
+                <td>${r.employee_name}</td>
+                <td>${r.date}</td>
+                <td><span class="badge bg-${badge}">${r.status}</span></td>
+                <td>${r.check_in || '-'}</td>
+                <td>${r.check_out || '-'}</td>
+                <td>${r.remarks || '-'}</td>
+            </tr>`);
+        });
+        reportTable = $('#reportTable').DataTable({ order: [[1, 'asc']] });
+    });
+}
+
+$(document).ready(function() {
+    loadReport();
+    $('#btnFilter').click(loadReport);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-calendar-check"></i> Today's Attendance</h3>
+        <div>
+            <a href="{{ url_for('attendance.mark_attendance') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Mark Attendance
+            </a>
+            <a href="{{ url_for('attendance.attendance_report') }}" class="btn btn-outline-info">
+                <i class="bi bi-file-text"></i> Reports
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">{{ today.strftime('%d %B %Y') }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="attTable">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td>{{ r.employee.first_name }} {{ r.employee.last_name }}</td>
+                            <td>
+                                {% if r.status == 'present' %}
+                                <span class="badge bg-success">Present</span>
+                                {% elif r.status == 'absent' %}
+                                <span class="badge bg-danger">Absent</span>
+                                {% elif r.status == 'half-day' %}
+                                <span class="badge bg-warning">Half Day</span>
+                                {% elif r.status == 'late' %}
+                                <span class="badge bg-info">Late</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ r.check_in or '-' }}</td>
+                            <td>{{ r.check_out or '-' }}</td>
+                            <td>{{ r.remarks or '-' }}</td>
+                            <td>
+                                <a href="{{ url_for('attendance.update_attendance', id=r.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No attendance records for today</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#attTable').DataTable({ order: [[0, 'asc']] });
+});
+</script>
+{% endblock %}
