@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
-from models import db, Manager, User, Employee
+from models import db, Manager, User, Employee, Payroll, Attendance, Leave
 from datetime import datetime
 from rbac import role_required
 
@@ -137,6 +137,14 @@ def delete_manager(id):
 
     if current_user.role == 'admin' and manager.created_by_admin_id != current_user.id:
         abort(403)
+
+    emp = Employee.query.filter_by(user_id=manager.user_id).first()
+    if emp:
+        Employee.query.filter_by(reporting_manager_id=emp.id).update({Employee.reporting_manager_id: None})
+        Payroll.query.filter_by(employee_id=emp.id).delete()
+        Attendance.query.filter_by(employee_id=emp.id).delete()
+        Leave.query.filter_by(employee_id=emp.id).delete()
+        db.session.delete(emp)
 
     user = User.query.get(manager.user_id)
     if user:

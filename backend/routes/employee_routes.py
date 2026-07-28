@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
-from models import db, Employee, User, Manager
+from models import db, Employee, User, Manager, Payroll, Attendance, Leave
 from datetime import datetime
 from rbac import role_required, get_team_employee_ids, can_access_employee
 
@@ -124,9 +124,20 @@ def edit_employee(id):
         managers = Employee.query.join(User, Employee.user_id == User.id).filter(User.role == 'manager', Employee.id != id).order_by(Employee.first_name).all()
 
     if request.method == 'POST':
+        new_email = request.form.get('email')
+        if new_email and new_email != employee.email:
+            existing = Employee.query.filter_by(email=new_email).first()
+            if existing:
+                flash('Email already exists!', 'danger')
+                return render_template('edit_employee.html', employee=employee, managers=managers, all_employees=all_employees)
+            existing_user = User.query.filter_by(email=new_email).first()
+            if existing_user:
+                flash('Email already exists!', 'danger')
+                return render_template('edit_employee.html', employee=employee, managers=managers, all_employees=all_employees)
+
         employee.first_name = request.form.get('first_name')
         employee.last_name = request.form.get('last_name')
-        employee.email = request.form.get('email')
+        employee.email = new_email
         employee.phone = request.form.get('phone')
         employee.department = request.form.get('department')
         employee.designation = request.form.get('designation')
@@ -163,7 +174,14 @@ def delete_employee(id):
 
     user = User.query.get(employee.user_id)
     if user:
+        mgr = Manager.query.filter_by(user_id=user.id).first()
+        if mgr:
+            db.session.delete(mgr)
         db.session.delete(user)
+
+    Payroll.query.filter_by(employee_id=id).delete()
+    Attendance.query.filter_by(employee_id=id).delete()
+    Leave.query.filter_by(employee_id=id).delete()
 
     db.session.delete(employee)
     db.session.commit()
