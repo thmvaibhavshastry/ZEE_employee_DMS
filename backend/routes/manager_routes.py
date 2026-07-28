@@ -51,8 +51,13 @@ def add_manager():
         db.session.add(user)
         db.session.flush()
 
-        mgr_count = Manager.query.count() + 1
-        manager_code = f'MGR{mgr_count:04d}'
+        last_mgr = Manager.query.order_by(Manager.id.desc()).first()
+        if last_mgr and last_mgr.manager_code and last_mgr.manager_code.startswith('MGR'):
+            last_num = int(last_mgr.manager_code[3:])
+            mgr_next = last_num + 1
+        else:
+            mgr_next = 1
+        manager_code = f'MGR{mgr_next:04d}'
 
         manager = Manager(
             user_id=user.id,
@@ -67,6 +72,23 @@ def add_manager():
             created_by_admin_id=current_user.id
         )
         db.session.add(manager)
+        db.session.flush()
+
+        emp = Employee.query.order_by(Employee.id.desc()).first()
+        next_code = int(emp.employee_code[3:]) + 1 if emp and emp.employee_code and emp.employee_code.startswith('EMP') else 1
+        employee = Employee(
+            user_id=user.id,
+            employee_code=f'EMP{next_code:04d}',
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            department=department,
+            designation=designation,
+            date_of_joining=datetime.strptime(date_of_joining, '%Y-%m-%d').date() if date_of_joining else None,
+            reporting_manager_id=None
+        )
+        db.session.add(employee)
         db.session.commit()
 
         flash('Manager added successfully!', 'success')
