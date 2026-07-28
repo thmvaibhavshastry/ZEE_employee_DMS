@@ -40,12 +40,7 @@ def add_employee():
         my_emp = Employee.query.filter_by(user_id=current_user.id).first()
         managers = [my_emp] if my_emp else []
     else:
-        mgr_records = Manager.query.order_by(Manager.first_name).all()
-        managers = []
-        for m in mgr_records:
-            emp = Employee.query.filter_by(user_id=m.user_id).first()
-            if emp:
-                managers.append(emp)
+        managers = Employee.query.join(User, Employee.user_id == User.id).filter(User.role == 'manager').order_by(Employee.first_name).all()
 
     if request.method == 'POST':
         first_name = request.form.get('first_name')
@@ -126,12 +121,7 @@ def edit_employee(id):
         my_emp = Employee.query.filter_by(user_id=current_user.id).first()
         managers = [my_emp] if my_emp else []
     else:
-        mgr_records = Manager.query.order_by(Manager.first_name).all()
-        managers = []
-        for m in mgr_records:
-            emp = Employee.query.filter_by(user_id=m.user_id).first()
-            if emp:
-                managers.append(emp)
+        managers = Employee.query.join(User, Employee.user_id == User.id).filter(User.role == 'manager', Employee.id != id).order_by(Employee.first_name).all()
 
     if request.method == 'POST':
         employee.first_name = request.form.get('first_name')
