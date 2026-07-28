@@ -34,12 +34,18 @@ def add_employee():
     if current_user.role == 'employee':
         abort(403)
 
+    all_employees = Employee.query.all()
+
     if current_user.role == 'manager':
         my_emp = Employee.query.filter_by(user_id=current_user.id).first()
         managers = [my_emp] if my_emp else []
     else:
-        managers = Employee.query.filter(Employee.reporting_manager_id.is_(None)).all()
-    all_employees = Employee.query.all()
+        mgr_records = Manager.query.order_by(Manager.first_name).all()
+        managers = []
+        for m in mgr_records:
+            emp = Employee.query.filter_by(user_id=m.user_id).first()
+            if emp:
+                managers.append(emp)
 
     if request.method == 'POST':
         first_name = request.form.get('first_name')
@@ -114,12 +120,18 @@ def edit_employee(id):
     if not can_access_employee(current_user, employee):
         abort(403)
 
+    all_employees = Employee.query.filter(Employee.id != id).all()
+
     if current_user.role == 'manager':
         my_emp = Employee.query.filter_by(user_id=current_user.id).first()
         managers = [my_emp] if my_emp else []
     else:
-        managers = Employee.query.filter(Employee.reporting_manager_id.is_(None), Employee.id != id).all()
-    all_employees = Employee.query.filter(Employee.id != id).all()
+        mgr_records = Manager.query.order_by(Manager.first_name).all()
+        managers = []
+        for m in mgr_records:
+            emp = Employee.query.filter_by(user_id=m.user_id).first()
+            if emp:
+                managers.append(emp)
 
     if request.method == 'POST':
         employee.first_name = request.form.get('first_name')
