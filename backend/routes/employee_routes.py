@@ -75,8 +75,13 @@ def add_employee():
         db.session.add(user)
         db.session.flush()
 
-        emp_count = Employee.query.count() + 1
-        employee_code = f'EMP{emp_count:04d}'
+        last_emp = Employee.query.order_by(Employee.id.desc()).first()
+        if last_emp and last_emp.employee_code and last_emp.employee_code.startswith('EMP'):
+            last_num = int(last_emp.employee_code[3:])
+            next_code = last_num + 1
+        else:
+            next_code = 1
+        employee_code = f'EMP{next_code:04d}'
 
         employee = Employee(
             user_id=user.id,
